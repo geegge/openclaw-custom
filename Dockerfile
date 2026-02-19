@@ -2,7 +2,7 @@
 FROM golang:1.22-alpine AS gog-build
 ARG GOGCLI_VERSION=v0.11.0
 
-RUN apk add --no-cache git make
+RUN apk add --no-cache git make bash
 WORKDIR /src
 RUN git clone https://github.com/steipete/gogcli.git .
 RUN git checkout "${GOGCLI_VERSION}"
