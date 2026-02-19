@@ -1,2 +1,2 @@
 # openclaw-custom
-customized openclaw image
+customized openclaw image with gog
