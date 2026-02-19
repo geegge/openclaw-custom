@@ -1,5 +1,5 @@
 # --- build gog (gogcli) ---
-FROM golang:1.22-alpine AS gog-build
+FROM golang:1.25-alpine AS gog-build
 ARG GOGCLI_VERSION=v0.11.0
 
 RUN apk add --no-cache git make bash
