@@ -30,4 +30,8 @@ RUN apt-get update \
 COPY --from=gog-build /src/bin/gog /usr/local/bin/gog
 RUN chmod +x /usr/local/bin/gog
 
+# Bundle the caldav-calendar skill (from this repo)
+WORKDIR /app
+COPY --chown=node:node skills/caldav-calendar /app/skills/caldav-calendar
+
 USER node
