@@ -11,11 +11,17 @@ permissions:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}  # geegge/openclaw-custom
+  IMAGE_NAME: ${{ github.repository }} # geegge/openclaw-custom
+  OPENCLAW_VERSION: "2026.2.12"
+  GOGCLI_VERSION: "v0.11.0"
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      image_ref: ${{ steps.out.outputs.image_ref }}
+      digest: ${{ steps.build.outputs.digest }}
+      tag_unique: ${{ steps.meta.outputs.unique_tag }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -33,7 +39,22 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Compute tags
+        id: meta
+        run: |
+          set -euo pipefail
+          SHORT_SHA="${GITHUB_SHA::7}"
+
+          BASE_TAG="openclaw-${OPENCLAW_VERSION}-gogcli-${GOGCLI_VERSION}"
+          UNIQUE_TAG="${BASE_TAG}-run${GITHUB_RUN_NUMBER}"
+          SHA_TAG="sha-${SHORT_SHA}"
+
+          echo "base_tag=${BASE_TAG}" >> "$GITHUB_OUTPUT"
+          echo "unique_tag=${UNIQUE_TAG}" >> "$GITHUB_OUTPUT"
+          echo "sha_tag=${SHA_TAG}" >> "$GITHUB_OUTPUT"
+
       - name: Build and push (multi-arch)
+        id: build
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -41,7 +62,34 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           build-args: |
-            GOGCLI_VERSION=v0.11.0
+            GOGCLI_VERSION=${{ env.GOGCLI_VERSION }}
+          labels: |
+            org.opencontainers.image.source=${{ github.repositoryUrl }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.created=${{ github.event.head_commit.timestamp }}
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:openclaw-2026.2.12-gogcli-v0.11.0
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.unique_tag }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.sha_tag }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.base_tag }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+
+      - name: Compute pinned image ref (repo@digest)
+        id: out
+        run: |
+          set -euo pipefail
+          IMAGE_REF="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}"
+          echo "image_ref=${IMAGE_REF}" >> "$GITHUB_OUTPUT"
+
+          {
+            echo "## Image pushed"
+            echo ""
+            echo "- Unique tag: \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.unique_tag }}\`"
+            echo "- SHA tag:    \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.sha_tag }}\`"
+            echo "- Digest:     \`${{ steps.build.outputs.digest }}\`"
+            echo "- Pinned ref: \`${IMAGE_REF}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Print pinned ref
+        run: |
+          echo "Pinned image ref:"
+          echo "${{ steps.out.outputs.image_ref }}"
