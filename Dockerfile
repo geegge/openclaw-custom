@@ -1,3 +1,5 @@
+ARG OPENCLAW_VERSION=2026.6.2-alpha.1
+
 # --- build gog (gogcli) ---
 FROM golang:1.25-alpine AS gog-build
 
@@ -11,7 +13,6 @@ RUN git checkout "${GOGCLI_VERSION}"
 RUN make  # -> /src/bin/gog
 
 # --- runtime: OpenClaw + gog + CalDAV tooling ---
-ARG OPENCLAW_VERSION=2026.6.2-alpha.1
 FROM ghcr.io/openclaw/openclaw:${OPENCLAW_VERSION}
 
 USER root
