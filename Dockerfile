@@ -11,7 +11,8 @@ RUN git checkout "${GOGCLI_VERSION}"
 RUN make  # -> /src/bin/gog
 
 # --- runtime: OpenClaw + gog + CalDAV tooling ---
-FROM ghcr.io/openclaw/openclaw:2026.2.12
+ARG OPENCLAW_VERSION=2026.6.2-alpha.1
+FROM ghcr.io/openclaw/openclaw:${OPENCLAW_VERSION}
 
 USER root
 
