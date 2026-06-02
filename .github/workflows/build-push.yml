@@ -12,7 +12,7 @@ permissions:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }} # geegge/openclaw-custom
-  OPENCLAW_VERSION: "2026.2.12"
+  OPENCLAW_VERSION: "2026.6.2-alpha.1"
   GOGCLI_VERSION: "v0.11.0"
 
 jobs:
@@ -62,6 +62,7 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           build-args: |
+            OPENCLAW_VERSION=${{ env.OPENCLAW_VERSION }}
             GOGCLI_VERSION=${{ env.GOGCLI_VERSION }}
           labels: |
             org.opencontainers.image.source=${{ github.repositoryUrl }}
