@@ -1,4 +1,4 @@
-ARG OPENCLAW_VERSION=2026.6.2-alpha.1
+ARG OPENCLAW_VERSION=2026.5.28
 
 # --- build gog (gogcli) ---
 FROM golang:1.25-alpine AS gog-build
